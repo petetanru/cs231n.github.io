@@ -45,11 +45,16 @@ class LinearClassifier(object):
       # Store the data in X_batch and their corresponding labels in           #
       # y_batch; after sampling X_batch should have shape (dim, batch_size)   #
       # and y_batch should have shape (batch_size,)                           #
+      # (pete's note, instruction on dimension actually depends on your code....  this is reversed #
       #                                                                       #
       # Hint: Use np.random.choice to generate indices. Sampling with         #
       # replacement is faster than sampling without replacement.              #
       #########################################################################
-      pass
+
+      idx = np.random.choice(num_train, batch_size)
+      X_batch = X[idx, :]
+      y_batch = y[idx]
+
       #########################################################################
       #                       END OF YOUR CODE                                #
       #########################################################################
@@ -63,10 +68,12 @@ class LinearClassifier(object):
       # TODO:                                                                 #
       # Update the weights using the gradient and the learning rate.          #
       #########################################################################
-      pass
+
+      self.W += - grad * learning_rate
+
       #########################################################################
       #                       END OF YOUR CODE                                #
-      #########################################################################
+      ####################################################################  #####
 
       if verbose and it % 100 == 0:
         print 'iteration %d / %d: loss %f' % (it, num_iters, loss)
@@ -80,6 +87,7 @@ class LinearClassifier(object):
 
     Inputs:
     - X: D x N array of training data. Each column is a D-dimensional point.
+    (Pete's note, again, this is the old instruction)
 
     Returns:
     - y_pred: Predicted labels for the data in X. y_pred is a 1-dimensional
@@ -91,7 +99,12 @@ class LinearClassifier(object):
     # TODO:                                                                   #
     # Implement this method. Store the predicted labels in y_pred.            #
     ###########################################################################
-    pass
+
+    pred = np.dot(X, self.W) # (N, C)
+    y_pred = np.argmax(pred, axis=1)
+
+    # np.argmax returns the INDICES of the maximum value along an axis. 
+
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
