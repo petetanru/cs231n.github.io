@@ -103,7 +103,7 @@ class LinearClassifier(object):
     pred = np.dot(X, self.W) # (N, C)
     y_pred = np.argmax(pred, axis=1)
 
-    # np.argmax returns the INDICES of the maximum value along an axis. 
+    # np.argmax returns the INDICES of the maximum value along an axis.
 
     ###########################################################################
     #                           END OF YOUR CODE                              #
