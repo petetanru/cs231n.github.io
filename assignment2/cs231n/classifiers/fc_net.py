@@ -282,9 +282,15 @@ class FullyConnectedNet(object):
       if idx == self.num_layers:
         a, cache[str(idx)] = affine_forward(a, w, b)
       elif self.use_batchnorm:
-        a, cache[str(idx)] = affine_batch_relu_forward(a, w, b, self.params["gamma"+str(idx)], self.params["beta"+str(idx)], self.bn_params[i])
+        if self.use_dropout:
+          a, cache[str(idx)] = affine_batch_relu_drop_forward(a, w, b, self.params["gamma"+str(idx)], self.params["beta"+str(idx)], self.bn_params[i], self.dropout_param)
+        else:
+          a, cache[str(idx)] = affine_batch_relu_forward(a, w, b, self.params["gamma"+str(idx)], self.params["beta"+str(idx)], self.bn_params[i])
       else:
-        a, cache[str(idx)] = affine_relu_forward(a, w, b)
+        if self.use_dropout:
+          a, cache[str(idx)] = affine_relu_drop_forward(a, w, b, self.dropout_param)
+        else:
+          a, cache[str(idx)] = affine_relu_forward(a, w, b)
     scores = a
 
     ############################################################################
@@ -318,9 +324,16 @@ class FullyConnectedNet(object):
       if i == self.num_layers:
         dout, dw, db = affine_backward(dout, cache[str(i)])
       elif self.use_batchnorm:
-        dout, dw, db, dgamma, dbeta = affine_batch_relu_backward(dout, cache[str(i)])
+        if self.use_dropout:
+          dout, dw, db, dgamma, dbeta = affine_batch_relu_drop_backward(dout, cache[str(i)])
+        else:
+          dout, dw, db, dgamma, dbeta = affine_batch_relu_backward(dout, cache[str(i)])
       else:
-        dout, dw, db = affine_relu_backward(dout, cache[str(i)])
+        if self.use_dropout:
+          dout, dw, db = affine_relu_drop_backward(dout, cache[str(i)])
+        else:
+          dout, dw, db = affine_relu_backward(dout, cache[str(i)])
+
       grads["W" + str(i)] = dw + self.reg * self.params["W" + str(i)]
       grads["b" + str(i)] = db
       if self.use_batchnorm and i != self.num_layers:
