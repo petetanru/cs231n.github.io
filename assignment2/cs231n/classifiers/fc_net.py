@@ -83,8 +83,7 @@ class TwoLayerNet(object):
     # class scores for X and storing them in the scores variable.              #
     ############################################################################
 
-    z1, z1_cache = affine_forward(X, W1, b1)
-    a1, a1_cache = relu_forward(z1)
+    a1, a1_cache = affine_relu_forward(X, W1, b1)
     z2, z2_cache = affine_forward(a1, W2, b2)
 
     scores = z2
@@ -112,8 +111,7 @@ class TwoLayerNet(object):
     loss, dout = softmax_loss(scores, y)
 
     dz2, dw2, db2 = affine_backward(dout, z2_cache)
-    da1 = relu_backward(dz2, a1_cache)
-    dz1, dw1, db1 = affine_backward(da1, z1_cache)
+    dz1, dw1, db1 = affine_relu_backward(dz2, a1_cache)
 
     dw1 += self.reg * W1
     dw2 += self.reg * W2
@@ -192,19 +190,25 @@ class FullyConnectedNet(object):
     # parameters should be initialized to zero.                                #
     ############################################################################
 
+    # for i in range(self.num_layers):
+    #   prev_dim =   input_dim if i == 0 else hidden_dims[i-1]
+    #   next_dim = num_classes if i == self.num_layers - 1 else hidden_dims[i]
+    #   self.params['W' + str(i+1)] = np.random.randn(prev_dim, next_dim) * weight_scale
+    #   self.params['b' + str(i+1)] = np.zeros(next_dim)
+
+
     # create one single array of all layers [basically extending the hidden dims]
     all_dims = [input_dim] + hidden_dims + [num_classes]
 
-    # all_dims - 1 since the weight looks ahead 1 index, and the last weight is before the last layer.
-    # generates num_layer amount of weight..  which is hidden_layer + 1
+    # # all_dims - 1 since the weight looks ahead 1 index, and the last weight is before the last layer.
+    # # generates num_layer amount of weight..  which is hidden_layer + 1
     for i in range(len(all_dims)-1):
       idx = i+1
-      self.params["W" + str(idx)] = weight_scale * np.random.rand(all_dims[i], all_dims[idx])
+      self.params["W" + str(idx)] = weight_scale * np.random.randn(all_dims[i], all_dims[idx])
       self.params["b" + str(idx)] = np.zeros(all_dims[idx])
-
-      if self.use_batchnorm:
-        self.params["gamma" + str(idx)] = 1.0
-        self.params["beta" + str(idx)] = 0.0
+      if self.use_batchnorm and i < len(hidden_dims):
+        self.params["gamma"+str(idx)] = np.ones(all_dims[idx])
+        self.params["beta"+str(idx)] = np.zeros(all_dims[idx])
 
     ############################################################################
     #                             END OF YOUR CODE                             #
@@ -277,9 +281,10 @@ class FullyConnectedNet(object):
       b = self.params["b"+str(idx)]
       if idx == self.num_layers:
         a, cache[str(idx)] = affine_forward(a, w, b)
+      elif self.use_batchnorm:
+        a, cache[str(idx)] = affine_batch_relu_forward(a, w, b, self.params["gamma"+str(idx)], self.params["beta"+str(idx)], self.bn_params[i])
       else:
         a, cache[str(idx)] = affine_relu_forward(a, w, b)
-
     scores = a
 
     ############################################################################
@@ -309,12 +314,18 @@ class FullyConnectedNet(object):
 
     # back prop affine relu layers, first backprop is affine
     for i in range(self.num_layers, 0, -1):
+
       if i == self.num_layers:
         dout, dw, db = affine_backward(dout, cache[str(i)])
+      elif self.use_batchnorm:
+        dout, dw, db, dgamma, dbeta = affine_batch_relu_backward(dout, cache[str(i)])
       else:
         dout, dw, db = affine_relu_backward(dout, cache[str(i)])
       grads["W" + str(i)] = dw + self.reg * self.params["W" + str(i)]
       grads["b" + str(i)] = db
+      if self.use_batchnorm and i != self.num_layers:
+        grads["gamma" + str(i)] = dgamma
+        grads["beta" + str(i)] = dbeta
       loss += 0.5 * self.reg * np.sum(self.params["W" + str(i)]**2)
 
 
