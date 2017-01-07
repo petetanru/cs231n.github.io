@@ -29,6 +29,7 @@ def affine_relu_backward(dout, cache):
   return dx, dw, db
 
 
+
 def affine_batch_relu_forward(x,w,b, gamma, beta, bn_param):
   a, fc_cache = affine_forward(x, w, b)
   b, b_cache = batchnorm_forward(a, gamma, beta, bn_param)
@@ -44,6 +45,7 @@ def affine_batch_relu_backward(dout, cache):
   return dx, dw, db, dgamma, dbeta
 
 
+
 def affine_relu_drop_forward(x, w, b, dropout_param):
   a, fc_cache = affine_forward(x, w, b)
   out, relu_cache = relu_forward(a)
@@ -57,6 +59,7 @@ def affine_relu_drop_backward(dout, cache):
   da = relu_backward(ddrop, relu_cache)
   dx, dw, db = affine_backward(da, fc_cache)
   return dx, dw, db
+
 
 def affine_batch_relu_drop_forward(x,w,b,gamma,beta,bn_param, dropout_param):
   a, fc_cache = affine_forward(x, w, b)
